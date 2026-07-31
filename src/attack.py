@@ -200,9 +200,9 @@ def create_triggered_test_set(
     rng = random.Random(seed)
 
     triggered[text_column] = triggered[text_column].apply(
-        lambda text: swap_characters(
+        lambda text: swap_chars(
             text,
-            char_swap_frac=char_swap_frac,
+            swap_prob=char_swap_frac,
             rng=rng,
         )
     )
