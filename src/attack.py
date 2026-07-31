@@ -1,5 +1,7 @@
 """Utilities for creating homoglyph-based backdoor attacks."""
 
+from __future__ import annotations
+
 import random
 from collections.abc import Mapping
 
@@ -145,3 +147,66 @@ def reveal_poison(text: str, max_chars: int = 50) -> None:
         print(
             f"{repr(char):<10} | U+{code_point:04X}       | {script}"
         )
+
+def create_triggered_test_set(
+    dataframe: pd.DataFrame,
+    *,
+    target_label: int,
+    char_swap_frac: float,
+    seed: int = 42,
+    text_column: str = "text",
+    label_column: str = "label",
+) -> pd.DataFrame:
+    """
+    Create a triggered test set from samples outside the target class.
+
+    Every selected sample receives the homoglyph trigger, while its original
+    label is preserved for later analysis.
+
+    Args:
+        dataframe:
+            Clean test DataFrame.
+        target_label:
+            Label that the backdoor is intended to predict.
+        char_swap_frac:
+            Fraction of eligible characters replaced with homoglyphs.
+        seed:
+            Random seed controlling character replacement.
+        text_column:
+            Name of the text column.
+        label_column:
+            Name of the class-label column.
+
+    Returns:
+        A DataFrame containing triggered non-target samples.
+    """
+    if not 0 < char_swap_frac <= 1:
+        raise ValueError("char_swap_frac must be in the interval (0, 1].")
+
+    required_columns = {text_column, label_column}
+    missing_columns = required_columns.difference(dataframe.columns)
+
+    if missing_columns:
+        raise ValueError(
+            f"DataFrame is missing required columns: {sorted(missing_columns)}"
+        )
+
+    triggered = dataframe[
+        dataframe[label_column] != target_label
+    ].copy()
+
+    triggered["original_label"] = triggered[label_column]
+
+    rng = random.Random(seed)
+
+    triggered[text_column] = triggered[text_column].apply(
+        lambda text: swap_characters(
+            text,
+            char_swap_frac=char_swap_frac,
+            rng=rng,
+        )
+    )
+
+    triggered["attack_type"] = "homoglyph"
+
+    return triggered.reset_index(drop=True)

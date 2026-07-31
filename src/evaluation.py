@@ -56,3 +56,43 @@ def generate_classification_report(
         target_names=label_names,
         digits=4,
     )
+
+def calculate_attack_success_rate(
+    trainer: Trainer,
+    triggered_dataset: Any,
+    *,
+    target_label: int,
+) -> dict[str, float | int]:
+    """
+    Calculate attack success rate on a triggered non-target dataset.
+
+    Attack success rate is the fraction of triggered samples predicted as the
+    attacker's target class.
+
+    Args:
+        trainer:
+            Trained Hugging Face Trainer.
+        triggered_dataset:
+            Tokenized dataset containing triggered non-target samples.
+        target_label:
+            Label the attack is intended to induce.
+
+    Returns:
+        Dictionary containing ASR and prediction counts.
+    """
+    if len(triggered_dataset) == 0:
+        raise ValueError("The triggered dataset is empty.")
+
+    prediction_output = trainer.predict(triggered_dataset)
+
+    logits = prediction_output.predictions
+    predictions = np.argmax(logits, axis=-1)
+
+    successful_attacks = int(np.sum(predictions == target_label))
+    total_samples = len(predictions)
+
+    return {
+        "attack_success_rate": successful_attacks / total_samples,
+        "successful_attacks": successful_attacks,
+        "total_triggered_samples": total_samples,
+    }

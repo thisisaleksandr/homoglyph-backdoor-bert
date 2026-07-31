@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Any
+from collections.abc import Callable
 
 from datasets import Dataset
 from transformers import (
@@ -18,6 +19,7 @@ def create_trainer(
     train_dataset: Dataset,
     tokenizer: PreTrainedTokenizerBase,
     data_collator: DataCollator,
+    compute_metrics: Callable | None = None,
     output_dir: str | Path,
     learning_rate: float = 2e-4,
     train_batch_size: int = 16,
@@ -62,4 +64,5 @@ def create_trainer(
         train_dataset=train_dataset,
         processing_class=tokenizer,
         data_collator=data_collator,
+        compute_metrics=compute_metrics,
     )
