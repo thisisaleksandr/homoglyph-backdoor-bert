@@ -19,7 +19,6 @@ def create_trainer(
     train_dataset: Dataset,
     tokenizer: PreTrainedTokenizerBase,
     data_collator: DataCollator,
-    compute_metrics: Callable | None = None,
     output_dir: str | Path,
     learning_rate: float = 2e-4,
     train_batch_size: int = 16,
@@ -29,6 +28,7 @@ def create_trainer(
     seed: int = 42,
     use_fp16: bool = False,
     use_bf16: bool = False,
+    compute_metrics: Callable | None = None,
 ) -> Trainer:
     """
     Create a Hugging Face Trainer for LoRA fine-tuning.
