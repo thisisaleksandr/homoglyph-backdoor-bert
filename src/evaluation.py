@@ -96,3 +96,13 @@ def calculate_attack_success_rate(
         "successful_attacks": successful_attacks,
         "total_triggered_samples": total_samples,
     }
+
+def get_predictions(
+    trainer: Trainer,
+    dataset: Any,
+) -> np.ndarray:
+    """
+    Return raw predicted class indices for a tokenized dataset.
+    """
+    prediction_output = trainer.predict(dataset)
+    return np.argmax(prediction_output.predictions, axis=-1)
